@@ -45,8 +45,8 @@ The complete mapping $\phi: \mathbb{R}^k \to \mathbb{H} \subset \mathbb{R}^3$ is
 
 $$
 \phi(\mathbf{a}_t) = \begin{pmatrix}
-\dfrac{\text{atan2}(p_{t,2}, p_{t,1}) + 2\pi}{2\pi} \mod 1 \\[1em]
-\sqrt{\sum_{i=1}^k \dfrac{p_{t,i}^2}{\lambda_i}} \\[1em]
+\dfrac{\text{atan2}(p_{t,2}, p_{t,1}) + 2\pi}{2\pi} \mod 1 \\
+\sqrt{\sum_{i=1}^k \dfrac{p_{t,i}^2}{\lambda_i}} \\
 \tanh\left(\dfrac{\|\mathbf{a}_t\|_2}{\sigma}\right)
 \end{pmatrix}
 $$
