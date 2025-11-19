@@ -1,0 +1,42 @@
+# Experiment Configuration
+experiment:
+  name: "colorful_constraint_learning"
+  seed: 42
+  device: "cpu"  # "cuda" if available
+
+# Environment Parameters
+environment:
+  cart_mass: 1.0
+  pole_mass: 0.1
+  pole_length: 0.5
+  gravity: 9.81
+  max_force: 10.0
+  max_cart_position: 2.4
+  dt: 0.02
+  max_episode_steps: 500
+
+# Concept Network Architecture
+concept_network:
+  state_dim: 4
+  concept_dim: 8
+  hidden_dims: [64, 32]
+  activation: "relu"
+
+# Color Manifold Parameters
+color_manifold:
+  smoothing_alpha: 0.8
+  pca_components: 8
+
+# Training Parameters
+training:
+  batch_size: 32
+  learning_rate: 1e-3
+  num_epochs_stage1: 1000
+  num_epochs_stage2: 500
+  contrastive_margin: 1.0
+
+# Data Collection
+data:
+  num_expert_trajectories: 100
+  num_violator_trajectories: 100
+  max_trajectory_length: 200
