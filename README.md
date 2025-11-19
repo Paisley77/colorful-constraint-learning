@@ -35,10 +35,21 @@ We project concept vectors into an HSV-inspired latent space using PCA-based tra
 - **Saturation**: Confidence of semantic assignment  
 - **Value**: Semantic prominence or significance
 
-The complete mapping `φ: ℝ^k → ℍ ⊂ ℝ³`:
-```math
-φ(𝐚_t) = [atan2(p_{t,2}, p_{t,1})/2π mod 1, √(Σ p_{t,i}²/λ_i), tanh(‖𝐚_t‖₂/σ)]
-```
+Let $\mathbf{a}_t \in \mathbb{R}^k$ be the concept vector at time $t$. After PCA decomposition $\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^T$, we project:
+
+$$
+\mathbf{p}_t = \mathbf{V}^T(\mathbf{a}_t - \boldsymbol{\mu})
+$$
+
+The complete mapping $\phi: \mathbb{R}^k \to \mathbb{H} \subset \mathbb{R}^3$ is defined as:
+
+$$
+\phi(\mathbf{a}_t) = \begin{pmatrix}
+\dfrac{\text{atan2}(p_{t,2}, p_{t,1}) + 2\pi}{2\pi} \mod 1 \\[1em]
+\sqrt{\sum_{i=1}^k \dfrac{p_{t,i}^2}{\lambda_i}} \\[1em]
+\tanh\left(\dfrac{\|\mathbf{a}_t\|_2}{\sigma}\right)
+\end{pmatrix}
+$$
 
 #### 3. **Temporal Coherence via Smoothing**
 We maintain temporal continuity through recurrent color smoothing:
