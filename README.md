@@ -1,4 +1,3 @@
-```markdown
 # The Color of Constraints: A Geo-Semantic HSV Interface for Inverse Constrained Reinforcement Learning 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
