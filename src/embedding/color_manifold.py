@@ -48,8 +48,14 @@ class ColorManifoldEmbedding:
         
         # Compute HSV coordinates (Equations 11-14)
         h = (np.arctan2(p_scores[:, 1], p_scores[:, 0]) + 2 * np.pi) / (2 * np.pi) % 1.0
-        s = np.sqrt(np.sum(p_scores**2 / self.eigenvalues, axis=1))
-        v = np.tanh(np.linalg.norm(concept_vectors, axis=1) / np.std(concept_vectors))
+        # Saturation: normalize by maximum possible value in training data
+        raw_s = np.sqrt(np.sum(p_scores**2 / self.eigenvalues, axis=1))
+        max_s = np.max(raw_s)
+        s = np.clip(raw_s / max_s, 0, 1)  # Now bounded [0, 1]
+        # Value: normalize
+        raw_v = np.tanh(np.linalg.norm(concept_vectors, axis=1) / np.std(concept_vectors))
+        max_v = np.max(raw_v)
+        v = np.clip(raw_v / max_v, 0, 1)
         
         hsv_coordinates = np.column_stack([h, s, v])
         return hsv_coordinates

@@ -7,12 +7,14 @@ import torch
 import pickle
 from pathlib import Path
 from src.environments.cartpole import InvertedPendulumEnv
+from src.controller.lqr_controller import LQRController
 
 def collect_expert_demonstrations(num_trajectories: int = 50, 
                                  max_steps: int = 200,
                                  save_path: str = "data/expert") -> None:
     """Collect expert demonstrations that maintain stability."""
     env = InvertedPendulumEnv()
+    lqr = LQRController(env.config)
     expert_trajectories = []
     
     print(f"Collecting {num_trajectories} expert demonstrations...")
@@ -29,11 +31,8 @@ def collect_expert_demonstrations(num_trajectories: int = 50,
         
         # Simple stabilizing controller (simulates expert)
         for step in range(max_steps):
-            x, x_dot, theta, theta_dot = state
-            
-            # Simple PD controller to maintain stability
-            force = -2.0 * theta - 0.5 * theta_dot - 0.1 * x - 0.05 * x_dot
-            force = np.clip(force, -env.config['max_force'], env.config['max_force'])
+            # LQR Controller 
+            force = lqr.compute_control(state)
             
             next_state, reward, done, truncated, info = env.step(np.array([force]))
             
@@ -54,12 +53,14 @@ def collect_expert_demonstrations(num_trajectories: int = 50,
             print(f"Collected {episode + 1}/{num_trajectories} expert trajectories")
     
     # Save expert demonstrations
-    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(save_path).mkdir(parents=True, exist_ok=True)
     with open(f"{save_path}/expert_demos.pkl", 'wb') as f:
         pickle.dump(expert_trajectories, f)
     
     print(f"Expert demonstrations saved to {save_path}/expert_demos.pkl")
     env.close()
+
+    return expert_trajectories
 
 def collect_violator_demonstrations(num_trajectories: int = 50,
                                    max_steps: int = 200,
@@ -72,7 +73,7 @@ def collect_violator_demonstrations(num_trajectories: int = 50,
     
     for episode in range(num_trajectories):
         # Start from more challenging initial conditions
-        theta0 = np.random.uniform(-0.5, 0.5)  # Larger initial angle
+        theta0 = np.random.uniform(-2.75, 2.75)  # Larger initial angle
         state, _ = env.reset(options={"initial_state": np.array([0.0, 0.0, theta0, 0.0])})
         
         trajectory = {
@@ -112,14 +113,27 @@ def collect_violator_demonstrations(num_trajectories: int = 50,
             print(f"Collected {episode + 1}/{num_trajectories} violator trajectories")
     
     # Save violator demonstrations
-    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(save_path).mkdir(parents=True, exist_ok=True)
     with open(f"{save_path}/violator_demos.pkl", 'wb') as f:
         pickle.dump(violator_trajectories, f)
     
     print(f"Violator demonstrations saved to {save_path}/violator_demos.pkl")
     env.close()
 
+    return violator_trajectories
+
 if __name__ == "__main__":
     # Collect both expert and violator demonstrations
-    collect_expert_demonstrations(num_trajectories=100)
-    collect_violator_demonstrations(num_trajectories=100)
+    env = InvertedPendulumEnv()
+    env.reset()
+    expert = collect_expert_demonstrations(num_trajectories=100)
+    for i in range(3):
+        for j in range(len(expert[i]['states'])):
+            env.set_state(expert[i]['states'][j])
+            env.render() 
+    violator = collect_violator_demonstrations(num_trajectories=100)
+    for i in range(3):
+        for j in range(len(violator[i]['states'])):
+            env.set_state(violator[i]['states'][j])
+            env.render() 
+    

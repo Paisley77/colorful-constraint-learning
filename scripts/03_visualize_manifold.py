@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import numpy as np
+from matplotlib.colors import hsv_to_rgb
 import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -45,25 +46,30 @@ def visualize_manifold_2d():
     violator_vectors, violator_traj_vectors = extract_concept_vectors(violator_trajs, concept_net)
     
     # Combine all vectors for PCA fitting
-    all_vectors = np.vstack([expert_vectors, violator_vectors])
+    # all_vectors = np.vstack([expert_vectors, violator_vectors])
     
     print("Fitting color manifold embedding...")
     color_embedder = ColorManifoldEmbedding(concept_dim=8)
-    all_hsv = color_embedder.fit_transform(all_vectors)
+
+    expert_hsv = color_embedder.fit_transform(expert_vectors)
+    violator_hsv = color_embedder.fit_transform(violator_vectors)
+    # all_hsv = color_embedder.fit_transform(all_vectors)
     
     # Split back into expert and violator
-    expert_hsv = all_hsv[:len(expert_vectors)]
-    violator_hsv = all_hsv[len(expert_vectors):]
+    # expert_hsv = all_hsv[:len(expert_vectors)]
+    # violator_hsv = all_hsv[len(expert_vectors):]
     
     print("Creating 2D visualization...")
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     
     # Plot 1: Hue-Saturation space
+    expert_rgb = hsv_to_rgb(expert_hsv)
+    violator_rgb = hsv_to_rgb(violator_hsv)
     scatter1 = ax1.scatter(expert_hsv[:, 0], expert_hsv[:, 1], 
-                          c=expert_hsv[:, 0], cmap='hsv', alpha=0.6, 
+                          c=expert_rgb, alpha=0.6, 
                           s=20, label='Expert')
-    ax1.scatter(violator_hsv[:, 0], violator_hsv[:, 1], 
-               c='red', alpha=0.6, s=20, label='Violator')
+    ax1.scatter(violator_hsv[:, 0], violator_hsv[:, 1], marker='*',
+               c=violator_rgb, alpha=0.6, s=20, label='Violator')
     ax1.set_xlabel('Hue (Semantic Category)')
     ax1.set_ylabel('Saturation (Confidence)')
     ax1.set_title('HSV Semantic Space: Hue vs Saturation')
@@ -72,10 +78,10 @@ def visualize_manifold_2d():
     
     # Plot 2: Hue-Value space  
     scatter2 = ax2.scatter(expert_hsv[:, 0], expert_hsv[:, 2], 
-                          c=expert_hsv[:, 0], cmap='hsv', alpha=0.6, 
+                          c=expert_rgb, alpha=0.6, 
                           s=20, label='Expert')
-    ax2.scatter(violator_hsv[:, 0], violator_hsv[:, 2], 
-               c='red', alpha=0.6, s=20, label='Violator')
+    ax2.scatter(violator_hsv[:, 0], violator_hsv[:, 2], marker='*',
+               c=violator_rgb, alpha=0.6, s=20, label='Violator')
     ax2.set_xlabel('Hue (Semantic Category)')
     ax2.set_ylabel('Value (Prominence)')
     ax2.set_title('HSV Semantic Space: Hue vs Value')
