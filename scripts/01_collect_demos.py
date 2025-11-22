@@ -45,7 +45,7 @@ def collect_expert_demonstrations(num_trajectories: int = 50,
             
             if done or truncated:
                 trajectory['done'] = True
-                break
+                state, _ = env.reset() 
         
         expert_trajectories.append(trajectory)
         
@@ -105,7 +105,7 @@ def collect_violator_demonstrations(num_trajectories: int = 50,
             
             if done or truncated:
                 trajectory['done'] = True
-                break
+                state, _ = env.reset() 
         
         violator_trajectories.append(trajectory)
         

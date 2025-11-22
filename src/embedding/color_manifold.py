@@ -18,19 +18,19 @@ class ColorManifoldEmbedding:
         self.mu = None
         self.eigenvalues = None
         
-    def fit(self, concept_vectors: np.ndarray) -> None:
+    def fit(self, concept_vectors) -> None:
         """
         Fit PCA transformation on concept vectors.
         
         Args:
             concept_vectors: [n_samples, concept_dim] array of concept activations
         """
-        self.mu = np.mean(concept_vectors, axis=0)
+        self.mu = concept_vectors.mean(axis=0)
         self.pca.fit(concept_vectors)
         self.eigenvalues = self.pca.explained_variance_
         self.is_fitted = True
         
-    def transform(self, concept_vectors: np.ndarray) -> np.ndarray:
+    def transform(self, concept_vectors):
         """
         Transform concept vectors to HSV color space.
         
@@ -60,12 +60,12 @@ class ColorManifoldEmbedding:
         hsv_coordinates = np.column_stack([h, s, v])
         return hsv_coordinates
     
-    def fit_transform(self, concept_vectors: np.ndarray) -> np.ndarray:
+    def fit_transform(self, concept_vectors):
         """Fit and transform in one step."""
         self.fit(concept_vectors)
         return self.transform(concept_vectors)
     
-    def smooth_trajectory(self, hsv_trajectory: np.ndarray, alpha: float = 0.8) -> np.ndarray:
+    def smooth_trajectory(self, hsv_trajectory, alpha: float = 0.8):
         """
         Apply recurrent smoothing to HSV trajectory (Equation 15).
         
@@ -79,7 +79,7 @@ class ColorManifoldEmbedding:
         smoothed = np.zeros_like(hsv_trajectory)
         smoothed[0] = hsv_trajectory[0]
         
-        for t in range(1, len(hsv_trajectory)):
+        for t in range(1, hsv_trajectory.shape[0]):
             # Handle circular hue dimension
             current_hue = hsv_trajectory[t, 0]
             prev_hue = smoothed[t-1, 0]

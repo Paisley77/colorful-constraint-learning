@@ -39,7 +39,9 @@ def visualize_manifold_2d():
     expert_trajs, violator_trajs = load_demonstrations()
     
     # Initialize concept network
+    model_path = os.path.join(os.path.dirname(__file__), '../', 'results/models/concept_net_stage1.pth')
     concept_net = ConceptNetwork(state_dim=4, concept_dim=8)
+    concept_net.load_state_dict(torch.load(model_path))
     
     print("Extracting concept vectors...")
     expert_vectors, expert_traj_vectors = extract_concept_vectors(expert_trajs, concept_net)

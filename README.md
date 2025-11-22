@@ -13,8 +13,8 @@ A fundamental limitation in current neurosymbolic AI is the *broken interface* b
 
 This project introduces a **geometric-semantic interface** that transforms raw state trajectories into a structured HSV color space where constraint manifolds become visually apparent and temporally rich patterns can be learned efficiently.
 
-![HSV Manifold Visualization](assets/manifold_2d.png)
-*Expert (blue) and violator (red) trajectories naturally separate in the learned HSV semantic space*
+![HSV Manifold Visualization](results/plots/training_evolution.gif)
+*Early semantic shaping in the HSV space*
 
 ## Methodology
 
@@ -98,13 +98,13 @@ pip install -r requirements.txt
 
 ```python
 # Generate demonstration data
-python scripts/01_collect_demos.py --config configs/cartpole.yaml
+python scripts/01_collect_demos.py 
 
 # Train the foundation embedding
-python scripts/02_train_foundation.py --config configs/default.yaml
+python scripts/02_train_foundation.py
 
 # Visualize the learned manifold
-python scripts/03_visualize_manifold.py --env cartpole
+python scripts/03_visualize_manifold.py
 ```
 
 ### Experiment with Custom Constraints
@@ -127,12 +127,13 @@ manifold = learner.learn_constraints(expert_demos, violator_demos)
 colorful-constraint-learning/
 ├── src/                    # Core framework code
 │   ├── environments/       # Custom constraint environments
+│   ├── controller/         # Custom LQR controller
 │   ├── perception/         # Concept learning networks
 │   ├── embedding/          # HSV color transformation
 │   └── learning/           # Multi-stage training algorithm
 ├── configs/               # Experiment configurations
 ├── scripts/               # Execution pipelines
-└── assets/                # Visualizations & demos
+└── results/                # Visualizations & demos
 ```
 
 ## Results & Visualizations

@@ -30,8 +30,8 @@ color_manifold:
 # Training Parameters
 training:
   batch_size: 32
-  learning_rate: 1e-3
-  num_epochs_stage1: 1000
+  learning_rate: 1.0e-3
+  num_epochs_stage1: 100
   num_epochs_stage2: 500
   contrastive_margin: 1.0
 
@@ -40,3 +40,17 @@ data:
   num_expert_trajectories: 100
   num_violator_trajectories: 100
   max_trajectory_length: 200
+
+# Stage 1 Training Parameters
+stage1:
+  contrastive_margin: 2.0
+  separation_weight: 1.0
+  expert_cluster_weight: 0.3
+  violator_cluster_weight: 0.3
+  save_interval: 5
+
+# Visualization
+visualization:
+  animation_fps: 2
+  animation_dpi: 100
+  plot_style: "seaborn-v0_8"
