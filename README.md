@@ -16,6 +16,10 @@ This project introduces a **geometric-semantic interface** that transforms raw s
 ![HSV Manifold Visualization](results/plots/training_evolution.gif)
 *Early semantic shaping in the HSV space*
 
+| 3D Manifold Learning | 2D Circular Projection |
+|--------------|----------------------|
+| ![3D Manifold](results/plots/tube_evolution.gif) | ![2D Projection](results/plots/circular_evolution.gif) |
+
 ## Methodology
 
 ### Core Innovation: The HSV Semantic Interface
