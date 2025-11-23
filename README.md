@@ -114,6 +114,9 @@ python scripts/02_train_foundation.py
 
 # Visualize the learned manifold
 python scripts/03_visualize_manifold.py
+
+# Manifold Learning
+python scripts/04_train_stage2.py 
 ```
 
 ### Experiment with Custom Constraints
