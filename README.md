@@ -13,12 +13,13 @@ A fundamental limitation in current neurosymbolic AI is the *broken interface* b
 
 This project introduces a **geometric-semantic interface** that transforms raw state trajectories into a structured HSV color space where constraint manifolds become visually apparent and temporally rich patterns can be learned efficiently.
 
-![HSV Manifold Visualization](results/plots/training_evolution.gif)
-*Early semantic shaping in the HSV space*
+|Early Semantic Shaping in the HSV Space|
+| ![HSV Manifold Visualization](results/plots/training_evolution.gif) |
 
-| 3D Manifold Learning | 2D Circular Projection |
-|--------------|----------------------|
-| ![3D Manifold](results/plots/tube_evolution.gif) | ![2D Projection](results/plots/circular_evolution.gif) |
+| 3D Manifold Learning | 
+| ![3D Manifold](results/plots/tube_evolution.gif) | 
+| 2D Circular Projection |
+| ![2D Projection](results/plots/circular_evolution.gif) |
 
 ## Methodology
 
