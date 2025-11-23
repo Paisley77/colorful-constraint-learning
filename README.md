@@ -15,12 +15,15 @@ This project introduces a **geometric-semantic interface** that transforms raw s
 
 ### Early Semantic Shaping in the HSV Space
 ![HSV Manifold Visualization](results/plots/training_evolution.gif)
+*Stage 1: Foundation Learning* demonstrates how our contrastive loss shapes the semantic embedding space. Expert trajectories (hsv) and violator trajectories (red in bottom plots) gradually separate into distinct clusters in the learned HSV color manifold, where hue represents semantic category, saturation indicates confidence, and value shows prominence.
 
 ### 3D Manifold Learning  
 ![3D Manifold](results/plots/tube_evolution.gif)
+*Stage 2: Alternating Optimization* shows our cylindrical constraint manifold (translucent surface) adapting to separate expert and violator behaviors. Blue expert trajectories converge toward the manifold interior while red violator trajectories are repelled outward. The left panel shows standard HSV coordinates, while the right panel uses cylindrical projection to properly represent the circular topology of hue dimension.
 
 ### 2D Circular Projection
 ![2D Projection](results/plots/circular_evolution.gif)
+This circular visualization projects the hue-saturation plane onto polar coordinates, where angle represents hue and radius represents saturation. The circular topology correctly captures semantic similarity across the 0-1 hue boundary, revealing the true neighborhood relationships between trajectories as the manifold (HSV half-moon boundary) evolves to enclose expert behaviors.
 
 ## Methodology
 
