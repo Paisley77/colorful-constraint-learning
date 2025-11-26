@@ -25,6 +25,10 @@ This project introduces a **geometric-semantic interface** that transforms raw s
 ![2D Projection](results/plots/circular_evolution.gif)
 This circular visualization projects the hue-saturation plane onto polar coordinates, where angle represents hue and radius represents saturation. The circular topology correctly captures semantic similarity across the 0-1 hue boundary, revealing the true neighborhood relationships between trajectories as the manifold (HSV half-moon boundary) evolves to enclose expert behaviors.
 
+### Temporal Convolutional Networks
+![TCN Pattern Detection](results/plots/temporal_evolution.gif)
+While our geometric manifold captures spatial constraints, some constraints are inherently temporal. This animation shows how Temporal Convolutional Networks (TCNs) learn to recognize complex behavioral patterns over time. Watch as the system discovers temporal "signatures" that separate expert and violator behaviors, completing our full constraint learning framework.
+
 ## Methodology
 
 ### Core Innovation: The HSV Semantic Interface
@@ -117,20 +121,9 @@ python scripts/03_visualize_manifold.py
 
 # Manifold Learning
 python scripts/04_train_stage2.py 
-```
 
-### Experiment with Custom Constraints
-
-```python
-from src.environments.constrained_cartpole import ConstrainedCartPole
-from src.learning.staged_training import ColorfulConstraintLearner
-
-# Create environment with constraint
-env = ConstrainedCartPole(constraint_type="left_half")
-
-# Initialize and train the framework
-learner = ColorfulConstraintLearner(env)
-manifold = learner.learn_constraints(expert_demos, violator_demos)
+# Temporal Convolutional Networks
+python scripts/05_train_stage3.py 
 ```
 
 ## Project Structure

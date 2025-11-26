@@ -17,6 +17,7 @@ class Stage2Trainer:
         self.config = config
         
         # Stage 2 components
+        self.concept_optimizer = optim.Adam(self.concept_net.parameters(), lr=1e-3)
         self.manifold = CylindricalManifold()
         self.manifold_optimizer = optim.Adam(self.manifold.parameters(), lr=1e-2)
         self.contrastive_loss = ConceptContrastiveLoss() 
@@ -37,10 +38,16 @@ class Stage2Trainer:
             
             # Save visualization state
             self._save_alternation_state(expert_states, violator_states, alt_step)
+        
+        torch.save(self.concept_net.state_dict(), 'results/models/concept_net_stage2.pth')
+        print("Trained concept network saved to results/models/concept_net_stage2.pth")
+        torch.save(self.manifold.state_dict(), 'results/models/manifold_stage2.pth')
+        print("Trained manifold saved to results/models/manifold_stage2.pth")
     
     def _update_manifold(self, expert_states, violator_states, num_epochs):
         """Update manifold to separate expert/violator in current embedding"""
         self.concept_net.eval()
+        self.manifold.train() 
         
         with torch.no_grad():
             # Get current HSV embeddings
@@ -60,8 +67,8 @@ class Stage2Trainer:
     
     def _update_concept_network(self, expert_states, violator_states, num_epochs):
         """Update concept network with combined loss"""
+        self.manifold.eval()
         self.concept_net.train()
-        concept_optimizer = optim.Adam(self.concept_net.parameters(), lr=1e-3)
         
         for epoch in range(num_epochs):
             # Sample batch
@@ -86,9 +93,9 @@ class Stage2Trainer:
             total_loss = 0.5 * contrastive_loss_comp + temporal_loss
             
             # Update
-            concept_optimizer.zero_grad()
+            self.concept_optimizer.zero_grad()
             total_loss.backward()
-            concept_optimizer.step()
+            self.concept_optimizer.step()
     
     def _get_hsv_embeddings(self, expert_states, violator_states):
         """Get current HSV embeddings for all data"""
@@ -129,6 +136,7 @@ class Stage2Trainer:
     def _save_alternation_state(self, expert_states, violator_states, alt_step):
         """Save state for visualization"""
         expert_hsv, violator_hsv = self._get_hsv_embeddings(expert_states, violator_states)
+        self.manifold.eval()
 
         with torch.no_grad():
             expert_tensor = torch.FloatTensor(expert_hsv)
