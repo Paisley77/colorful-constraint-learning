@@ -48,13 +48,17 @@ def visualize_manifold_2d():
     violator_vectors, violator_traj_vectors = extract_concept_vectors(violator_trajs, concept_net)
     
     # Combine all vectors for PCA fitting
-    # all_vectors = np.vstack([expert_vectors, violator_vectors])
+    all_vectors = np.vstack([expert_vectors, violator_vectors])
     
     print("Fitting color manifold embedding...")
     color_embedder = ColorManifoldEmbedding(concept_dim=8)
 
-    expert_hsv = color_embedder.fit_transform(expert_vectors)
-    violator_hsv = color_embedder.fit_transform(violator_vectors)
+    all_hsv = color_embedder.fit_transform(all_vectors)
+    expert_hsv = all_hsv[:expert_vectors.shape[0]]
+    violator_hsv = all_hsv[expert_vectors.shape[0]:]
+
+    # expert_hsv = color_embedder.fit_transform(expert_vectors)
+    # violator_hsv = color_embedder.fit_transform(violator_vectors)
     # all_hsv = color_embedder.fit_transform(all_vectors)
     
     # Split back into expert and violator
@@ -67,11 +71,11 @@ def visualize_manifold_2d():
     # Plot 1: Hue-Saturation space
     expert_rgb = hsv_to_rgb(expert_hsv)
     violator_rgb = hsv_to_rgb(violator_hsv)
-    scatter1 = ax1.scatter(expert_hsv[:, 0], expert_hsv[:, 1], 
-                          c=expert_rgb, alpha=0.6, 
+    ax1.scatter(violator_hsv[:, 0], violator_hsv[:, 1], marker='^',
+               c='darkred', alpha=0.6, s=20, label='Violator')
+    ax1.scatter(expert_hsv[:, 0], expert_hsv[:, 1], 
+                          c='darkblue', 
                           s=20, label='Expert')
-    ax1.scatter(violator_hsv[:, 0], violator_hsv[:, 1], marker='*',
-               c=violator_rgb, alpha=0.6, s=20, label='Violator')
     ax1.set_xlabel('Hue (Semantic Category)')
     ax1.set_ylabel('Saturation (Confidence)')
     ax1.set_title('HSV Semantic Space: Hue vs Saturation')
@@ -79,11 +83,11 @@ def visualize_manifold_2d():
     ax1.grid(True, alpha=0.3)
     
     # Plot 2: Hue-Value space  
-    scatter2 = ax2.scatter(expert_hsv[:, 0], expert_hsv[:, 2], 
+    ax2.scatter(violator_hsv[:, 0], violator_hsv[:, 2], marker='*',
+               c='darkred', alpha=0.6, s=20, label='Violator')
+    ax2.scatter(expert_hsv[:, 0], expert_hsv[:, 2], 
                           c=expert_rgb, alpha=0.6, 
                           s=20, label='Expert')
-    ax2.scatter(violator_hsv[:, 0], violator_hsv[:, 2], marker='*',
-               c=violator_rgb, alpha=0.6, s=20, label='Violator')
     ax2.set_xlabel('Hue (Semantic Category)')
     ax2.set_ylabel('Value (Prominence)')
     ax2.set_title('HSV Semantic Space: Hue vs Value')

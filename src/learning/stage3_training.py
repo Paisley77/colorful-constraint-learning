@@ -59,8 +59,8 @@ class Stage3Trainer:
             if epoch % 10 == 0:
                 self._save_temporal_state(expert_states, violator_states, epoch)
 
-        torch.save(self.tcn_bank.state_dict(), 'results/models/TCN_stage3.pth')
-        print("Trained TCNs saved to results/models/TCN_stage3.pth")
+        # torch.save(self.tcn_bank.state_dict(), 'results/models/TCN_stage3.pth')
+        # print("Trained TCNs saved to results/models/TCN_stage3.pth")
     
     def _states_to_hsv_trajectories(self, state_batch):
         """Convert state batch to HSV trajectories"""

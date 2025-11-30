@@ -8,7 +8,7 @@ class ConceptContrastiveLoss(nn.Module):
     Contrastive loss applied directly to concept vectors (before HSV projection).
     """
     
-    def __init__(self, margin: float = 2.0, alpha: float = 1.0, beta: float = 0.3, gamma: float = 0.3):
+    def __init__(self, margin: float = 10.0, alpha: float = 3.0, beta: float = 0.3, gamma: float = 0.3):
         super().__init__()
         self.margin = margin
         self.alpha = alpha  # separation loss weight

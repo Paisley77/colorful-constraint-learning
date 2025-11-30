@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import hsv_to_rgb
 from pathlib import Path
 from tqdm import tqdm 
+from sklearn.decomposition import PCA
 
 from src.perception.concept_network import ConceptNetwork
 from src.embedding.color_manifold import ColorManifoldEmbedding
@@ -144,6 +145,8 @@ class StagedTrainer:
             
             self.embedding_history.append({
                 'epoch': epoch,
+                'expert_concepts': expert_flat, 
+                'violator_concepts': violator_flat, 
                 'expert_hsv': expert_hsv, # [BxT,3]
                 'violator_hsv': violator_hsv
             })
@@ -244,6 +247,119 @@ class StagedTrainer:
         plt.close()
         print(f"Training animation saved to {save_path}")
     
+    def create_stage1_figure(self, save_path="results/plots/stage1_evolution.png"):
+        """Create the 3-panel Stage 1 progression figure"""
+        history = self.embedding_history
+        
+        # Extract data at key epochs 
+        initial_data = history[0]  # Epoch 0
+        mid_data = history[len(history)//2]  # Middle epoch  
+        final_data = history[-1]  # Final epoch
+        
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        alpha_e = 0.35
+        alpha_v = 0.3
+        alpha_ell_e = 0.32
+        alpha_ell_v = 0.2 
+        
+        # Panel A: Initial
+        expert_concepts = initial_data['expert_concepts']  # Shape: [n_expert_samples, concept_dim]
+        violator_concepts = initial_data['violator_concepts']
+        
+        # Combine and fit PCA once for consistent axes
+        import numpy as np 
+        all_concepts = np.vstack([expert_concepts, violator_concepts])
+        pca = PCA(n_components=2)
+        pca.fit(all_concepts)
+        
+        # Transform all data
+        expert_2d = pca.transform(expert_concepts)
+        violator_2d = pca.transform(violator_concepts)
+        
+        axes[0].scatter(violator_2d[:, 0], violator_2d[:, 1], c='red', alpha=alpha_v, s=30, marker='x', label='Violator')
+        axes[0].scatter(expert_2d[:, 0], expert_2d[:, 1], c='blue', alpha=alpha_e, s=30, label='Expert')
+        axes[0].set_title('a) Initial: No Semantic Separation')
+        axes[0].set_xlabel('PC1 (Primary Semantic Axis)')
+        axes[0].set_ylabel('PC2 (Secondary Semantic Axis)')
+        axes[0].legend()
+        axes[0].grid(True, alpha=0.3)
+        
+        # Panel B: Mid-training
+        expert_concepts = mid_data['expert_concepts']
+        violator_concepts = mid_data['violator_concepts']
+        
+        expert_2d = pca.transform(expert_concepts)
+        violator_2d = pca.transform(violator_concepts)
+        
+        
+        axes[1].scatter(violator_2d[:, 0], violator_2d[:, 1], c='red', alpha=alpha_v, s=30, marker='x', label='Violator')
+        axes[1].scatter(expert_2d[:, 0], expert_2d[:, 1], c='blue', alpha=alpha_e, s=30, label='Expert')
+        axes[1].set_title('b) Mid-Training: Emerging Clusters')
+        axes[1].set_xlabel('PC1 (Primary Semantic Axis)')
+        axes[1].set_ylabel('PC2 (Secondary Semantic Axis)')
+        axes[1].legend()
+        axes[1].grid(True, alpha=0.3)
+        
+        # Add ellipses to show clustering
+        from matplotlib.patches import Ellipse
+        import numpy as np
+        
+        # Violator ellipse  
+        violator_mean = np.mean(violator_2d, axis=0)
+        violator_cov = np.cov(violator_2d.T)
+        eigvals, eigvecs = np.linalg.eig(violator_cov)
+        angle = np.degrees(np.arctan2(eigvecs[1,0], eigvecs[0,0]))
+        ellipse = Ellipse(violator_mean, width=np.sqrt(eigvals[0])*6, height=np.sqrt(eigvals[1])*6,
+                        angle=angle, alpha=alpha_ell_v, color='red')
+        axes[1].add_patch(ellipse)
+        
+        # Expert ellipse
+        expert_mean = np.mean(expert_2d, axis=0)
+        expert_cov = np.cov(expert_2d.T)
+        eigvals, eigvecs = np.linalg.eig(expert_cov)
+        angle = np.degrees(np.arctan2(eigvecs[1,0], eigvecs[0,0]))
+        ellipse = Ellipse(expert_mean, width=np.sqrt(eigvals[0])*6, height=np.sqrt(eigvals[1])*6,
+                        angle=angle, alpha=alpha_ell_e, color='blue')
+        axes[1].add_patch(ellipse)
+        
+        # Panel C: Final
+        expert_concepts = final_data['expert_concepts']
+        violator_concepts = final_data['violator_concepts']
+        
+        expert_2d = pca.transform(expert_concepts)
+        violator_2d = pca.transform(violator_concepts)
+        
+        axes[2].scatter(violator_2d[:, 0], violator_2d[:, 1], c='red', alpha=alpha_v, s=30, marker='x', label='Violator')
+        axes[2].scatter(expert_2d[:, 0], expert_2d[:, 1], c='blue', alpha=alpha_e, s=30, label='Expert')
+        axes[2].set_title('c) Final: Distinct Semantic Clusters')
+        axes[2].set_xlabel('PC1 (Primary Semantic Axis)')
+        axes[2].set_ylabel('PC2 (Secondary Semantic Axis)')
+        axes[2].legend()
+        axes[2].grid(True, alpha=0.3)
+        
+        # Add final ellipses
+        violator_mean = np.mean(violator_2d, axis=0)
+        violator_cov = np.cov(violator_2d.T)
+        eigvals, eigvecs = np.linalg.eig(violator_cov)
+        angle = np.degrees(np.arctan2(eigvecs[1,0], eigvecs[0,0]))
+        ellipse = Ellipse(violator_mean, width=np.sqrt(eigvals[0])*6, height=np.sqrt(eigvals[1])*6,
+                        angle=angle, alpha=alpha_ell_v, color='red')
+        axes[2].add_patch(ellipse)
+
+        expert_mean = np.mean(expert_2d, axis=0)
+        expert_cov = np.cov(expert_2d.T)
+        eigvals, eigvecs = np.linalg.eig(expert_cov)
+        angle = np.degrees(np.arctan2(eigvecs[1,0], eigvecs[0,0]))
+        ellipse = Ellipse(expert_mean, width=np.sqrt(eigvals[0])*6, height=np.sqrt(eigvals[1])*6,
+                        angle=angle, alpha=alpha_ell_e, color='blue')
+        axes[2].add_patch(ellipse)
+        
+        
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+
+
     def plot_loss_history(self, save_path: str = "results/plots/loss_history.png") -> None:
         """Plot the training loss history."""
         epochs = range(len(self.loss_history))

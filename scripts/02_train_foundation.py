@@ -68,6 +68,7 @@ def main():
     # Create visualizations
     trainer.create_training_animation()
     trainer.plot_loss_history()
+    trainer.create_stage1_figure()
     
     # Save trained model
     torch.save(concept_net.state_dict(), 'results/models/concept_net_stage1.pth')

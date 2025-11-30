@@ -7,7 +7,7 @@ def smooth_always_operator(manifold_distances, beta=1.0):
     # Robust min via log-sum-exp
     return -torch.logsumexp(beta * manifold_distances, dim=-1) / beta
 
-def temporal_constraint_loss(expert_hsv, violator_hsv, manifold, margin=0.5):
+def temporal_constraint_loss(expert_hsv, violator_hsv, manifold, total_progress=0.5, margin=10):
     """
     Loss that pushes expert trajectories to satisfy Always(near_manifold)
     and violator trajectories to violate it.
@@ -21,7 +21,9 @@ def temporal_constraint_loss(expert_hsv, violator_hsv, manifold, margin=0.5):
     violator_satisfaction = smooth_always_operator(violator_dists)
     
     # Expert should be close to manifold (negative distance), violator far
-    loss = (torch.clamp(margin - expert_satisfaction, min=0).mean() +  # Expert too far
-            torch.clamp(violator_satisfaction + margin, min=0).mean())  # Violator too close
+    expert_score = torch.clamp(margin - expert_satisfaction, min=0).mean()
+    violator_score =  torch.clamp(violator_satisfaction + 2* margin, min=0).mean()
+    # loss = expert_score if total_progress > 0.5 else violator_score
+    loss = expert_score + violator_score
     
     return loss

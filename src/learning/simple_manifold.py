@@ -64,7 +64,7 @@ class CylindricalManifold(nn.Module):
         super().__init__()
         # Parameters define a "safe tube" in cylindrical coordinates
         self.hue_center = nn.Parameter(torch.tensor([0.5]))  # Center of safe hue band
-        self.hue_width = nn.Parameter(torch.tensor([0.2]))   # Width of safe hue band  
+        self.hue_width = nn.Parameter(torch.tensor([0.3]))   # Width of safe hue band  
         self.sat_center = nn.Parameter(torch.tensor([0.6]))  # Optimal saturation
         self.sat_tolerance = nn.Parameter(torch.tensor([0.3]))  # Saturation tolerance
         self.value_center = nn.Parameter(torch.tensor([0.5]))  # Optimal value
@@ -72,17 +72,26 @@ class CylindricalManifold(nn.Module):
         
     def forward(self, hsv_points):
         h, s, v = hsv_points[:, 0], hsv_points[:, 1], hsv_points[:, 2]
+
+        hue_center = torch.sigmoid(self.hue_center)
+        hue_width = (torch.sigmoid(self.hue_width) * 0.4)
+        sat_center = torch.sigmoid(self.sat_center)
+        sat_tolerance =  (torch.sigmoid(self.sat_tolerance) * 0.4)
+        value_center = torch.sigmoid(self.value_center)
+        value_tolerance = (torch.sigmoid(self.value_tolerance) * 0.4)
         
         # Circular distance for hue (respects 0-1 wrap-around)
-        hue_diff = torch.abs(h - self.hue_center)
-        hue_dist = torch.minimum(hue_diff, 1.0 - hue_diff) - self.hue_width
+        hue_diff = torch.abs(h - hue_center)
+        hue_dist = torch.minimum(hue_diff, 1.0 - hue_diff) - hue_width
         
         # Standard distances for saturation and value
-        sat_dist = torch.abs(s - self.sat_center) - self.sat_tolerance
-        val_dist = torch.abs(v - self.value_center) - self.value_tolerance
+        sat_dist = torch.abs(s - sat_center) - sat_tolerance
+        val_dist = torch.abs(v - value_center) - value_tolerance
         
+        return torch.maximum(hue_dist, sat_dist)
+
         # Combined distance - positive means outside safe region
-        return torch.maximum(hue_dist, torch.maximum(sat_dist, val_dist))
+        # return torch.maximum(hue_dist, torch.maximum(sat_dist, val_dist))
     
     def get_constrained_params(self):
         """Get the constrained parameter values"""

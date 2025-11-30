@@ -277,3 +277,101 @@ def create_circle_animation(history, save_path="results/plots/circular_evolution
     
     plt.close()
     print(f"Projected circular manifold animation saved to {save_path}")
+
+
+import matplotlib.patches as patches
+from matplotlib.colors import LinearSegmentedColormap
+
+def create_stage2_polar_figure(history, save_path="results/plots/stage2_polar_evolution.png"):
+    """Create the 3-panel Stage 2 manifold evolution figure in polar coordinates"""
+    
+    # Get key alternation steps
+    initial_data = history[0]  # Alternation 0
+    mid_data = history[len(history)//2]  # Middle alternation
+    final_data = history[-1]  # Final alternation
+    
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), subplot_kw=dict(projection='polar'))
+    
+    # Create colormap for distance-based coloring
+    cmap = LinearSegmentedColormap.from_list('safe_violate', ['blue', 'green', 'red'])
+    
+    def hsv_to_polar(hsv_points):
+        """Convert HSV points to polar coordinates for plotting"""
+        # Hue becomes angle (0-2π), Saturation becomes radius (0-1)
+        angles = 2 * np.pi * hsv_points[:, 0]  # Convert hue to radians
+        radii = hsv_points[:, 1]  # Saturation as radius
+        return angles, radii
+    
+    def plot_polar_manifold_panel(ax, data, title):
+        """Plot one panel with manifold and colored points in polar coordinates"""
+        expert_hsv = data['expert_hsv']
+        violator_hsv = data['violator_hsv']
+        manifold_params = data['manifold_params']
+        
+        # Extract manifold bounds
+        h_center = manifold_params['hue_center']
+        h_width = manifold_params['hue_width']
+        s_center = manifold_params['sat_center'] 
+        s_tolerance = manifold_params['sat_tolerance']
+
+        # Convert to polar
+        expert_angles, expert_radii = hsv_to_polar(expert_hsv)
+        violator_angles, violator_radii = hsv_to_polar(violator_hsv)
+
+        scatter = ax.scatter(expert_angles, expert_radii, c='blue', alpha=0.5, s=15)
+        ax.scatter(violator_angles, violator_radii, c='red', marker='x', alpha=0.5, s=15)
+        
+        # Draw manifold as an annular sector (circular band)
+        # Create points for the manifold boundary
+        n_points = 100
+        manifold_angles = np.linspace(h_center - h_width, h_center + h_width, n_points) * 2 * np.pi
+        
+        # Inner boundary (s_center - s_tolerance)
+        inner_radii = np.ones(n_points) * max(0, s_center - s_tolerance)
+        # Outer boundary (s_center + s_tolerance)  
+        outer_radii = np.ones(n_points) * min(1, s_center + s_tolerance)
+        
+        # Fill between inner and outer boundaries
+        ax.fill_between(manifold_angles, inner_radii, outer_radii, 
+                       color='green', alpha=0.3, label='Safe Region')
+        
+        # Draw boundary lines
+        ax.plot(manifold_angles, inner_radii, 'g-', linewidth=2, alpha=0.8)
+        ax.plot(manifold_angles, outer_radii, 'g-', linewidth=2, alpha=0.8)
+        
+        # Draw radial boundary lines to close the sector
+        ax.plot([manifold_angles[0], manifold_angles[0]], [inner_radii[0], outer_radii[0]], 
+               'g-', linewidth=2, alpha=0.8)
+        ax.plot([manifold_angles[-1], manifold_angles[-1]], [inner_radii[-1], outer_radii[-1]], 
+               'g-', linewidth=2, alpha=0.8)
+        
+        # Polar plot styling
+        ax.set_theta_zero_location('E')  # 0° on the right
+        ax.set_theta_direction(1)  # Counterclockwise
+        ax.set_rmax(1.0)  # Maximum radius
+        ax.grid(True, alpha=0.3)
+        
+        # Set title
+        ax.set_title(title, pad=20, fontsize=12)
+        
+        # # Add colorbar for the final panel only
+        # if title.startswith('c)'):
+        #     # Create a separate axis for colorbar to avoid distortion
+        #     from mpl_toolkits.axes_grid1 import make_axes_locatable
+        #     divider = make_axes_locatable(ax)
+        #     cax = divider.append_axes("right", size="5%", pad=0.1)
+        #     plt.colorbar(scatter, cax=cax, label='Manifold Distance\n(blue=safe, red=violating)')
+    
+    # Plot all three panels
+    plot_polar_manifold_panel(axes[0], initial_data, 'a) Initial: Poorly Fitted Manifold')
+    plot_polar_manifold_panel(axes[1], mid_data, 'b) Mid-Optimization: Adaptive Refinement') 
+    plot_polar_manifold_panel(axes[2], final_data, 'c) Final: Optimized Safe Region')
+    
+    # Add a super title
+    plt.suptitle('Stage 2: Geometric Manifold Learning in Polar Coordinates\n(Hue → Angle, Saturation → Radius)', 
+                 fontsize=14, y=1.05)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    # plt.show()
+

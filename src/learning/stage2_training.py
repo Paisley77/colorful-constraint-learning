@@ -31,20 +31,20 @@ class Stage2Trainer:
         for alt_step in tqdm(range(num_alternations)):
             
             # Phase A: Update manifold with fixed concepts
-            self._update_manifold(expert_states, violator_states, num_epochs=5)
+            self._update_manifold(expert_states, violator_states, num_epochs=5, total_progress = alt_step/num_alternations)
             
             # Phase B: Update concept network with fixed manifold  
-            self._update_concept_network(expert_states, violator_states, num_epochs=5)
+            self._update_concept_network(expert_states, violator_states, num_epochs=5, total_progress = alt_step/num_alternations)
             
             # Save visualization state
             self._save_alternation_state(expert_states, violator_states, alt_step)
         
-        torch.save(self.concept_net.state_dict(), 'results/models/concept_net_stage2.pth')
-        print("Trained concept network saved to results/models/concept_net_stage2.pth")
-        torch.save(self.manifold.state_dict(), 'results/models/manifold_stage2.pth')
-        print("Trained manifold saved to results/models/manifold_stage2.pth")
+        # torch.save(self.concept_net.state_dict(), 'results/models/concept_net_stage2.pth')
+        # print("Trained concept network saved to results/models/concept_net_stage2.pth")
+        # torch.save(self.manifold.state_dict(), 'results/models/manifold_stage2.pth')
+        # print("Trained manifold saved to results/models/manifold_stage2.pth")
     
-    def _update_manifold(self, expert_states, violator_states, num_epochs):
+    def _update_manifold(self, expert_states, violator_states, num_epochs, total_progress):
         """Update manifold to separate expert/violator in current embedding"""
         self.concept_net.eval()
         self.manifold.train() 
@@ -59,13 +59,12 @@ class Stage2Trainer:
         
         for epoch in range(num_epochs):
             self.manifold_optimizer.zero_grad()
-            
-            loss = temporal_constraint_loss(expert_tensor, violator_tensor, self.manifold)
+            loss = temporal_constraint_loss(expert_tensor, violator_tensor, self.manifold, total_progress=total_progress)
             
             loss.backward()
             self.manifold_optimizer.step()
     
-    def _update_concept_network(self, expert_states, violator_states, num_epochs):
+    def _update_concept_network(self, expert_states, violator_states, num_epochs, total_progress):
         """Update concept network with combined loss"""
         self.manifold.eval()
         self.concept_net.train()
@@ -88,9 +87,9 @@ class Stage2Trainer:
             
             # Combined loss
             contrastive_loss_comp, _ = self.contrastive_loss(expert_concepts, violator_concepts)
-            temporal_loss = temporal_constraint_loss(expert_hsv, violator_hsv, self.manifold)
+            temporal_loss = temporal_constraint_loss(expert_hsv, violator_hsv, self.manifold, total_progress=total_progress)
             
-            total_loss = 0.5 * contrastive_loss_comp + temporal_loss
+            total_loss = contrastive_loss_comp + temporal_loss 
             
             # Update
             self.concept_optimizer.zero_grad()
@@ -105,21 +104,28 @@ class Stage2Trainer:
             all_expert_concepts = []
             for states in expert_states:
                 concepts = self.concept_net(torch.FloatTensor(states)).detach().numpy()
-                all_expert_concepts.append(concepts)
+                all_expert_concepts.extend(concepts)
             
             all_violator_concepts = []
             for states in violator_states:
                 concepts = self.concept_net(torch.FloatTensor(states)).detach().numpy()
-                all_violator_concepts.append(concepts)
+                all_violator_concepts.extend(concepts)
             
-            expert_flat = np.vstack(all_expert_concepts)
-            violator_flat = np.vstack(all_violator_concepts)
 
-            expert_hsv = self.color_embedder.fit_transform(expert_flat)
-            violator_hsv = self.color_embedder.fit_transform(violator_flat)
+            all_concepts = np.vstack([all_expert_concepts, all_violator_concepts])
+            all_hsv = self.color_embedder.fit_transform(all_concepts)
+            all_hsv = self.color_embedder.smooth_trajectory(all_hsv)
+            expert_hsv = all_hsv[:len(all_expert_concepts)]
+            violator_hsv = all_hsv[len(all_violator_concepts):]
+
+            # expert_flat = np.vstack(all_expert_concepts)
+            # violator_flat = np.vstack(all_violator_concepts)
+
+            # expert_hsv = self.color_embedder.fit_transform(expert_flat)
+            # violator_hsv = self.color_embedder.fit_transform(violator_flat)
             
-            expert_hsv = self.color_embedder.smooth_trajectory(expert_hsv)
-            violator_hsv = self.color_embedder.smooth_trajectory(violator_hsv)
+            # expert_hsv = self.color_embedder.smooth_trajectory(expert_hsv)
+            # violator_hsv = self.color_embedder.smooth_trajectory(violator_hsv)
             
             return expert_hsv, violator_hsv
     

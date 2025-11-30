@@ -27,12 +27,14 @@ def main():
     
     # Run Stage 2
     trainer = Stage2Trainer(concept_net, color_embedder, config={})
-    trainer.stage2_alternating_optimization(expert_states, violator_states, num_alternations=8)
+    trainer.stage2_alternating_optimization(expert_states, violator_states, num_alternations=50)
     
     # Create visualization
-    from src.perception.stage2_animation import create_tube_animation, create_circle_animation
-    create_tube_animation(trainer.history)
-    create_circle_animation(trainer.history)
+    from src.perception.stage2_animation import create_tube_animation, create_circle_animation, create_stage2_polar_figure
+    # create_tube_animation(trainer.history)
+    # create_circle_animation(trainer.history)
+    create_stage2_polar_figure(trainer.history)
+
     
     print("Stage 2 completed!")
 

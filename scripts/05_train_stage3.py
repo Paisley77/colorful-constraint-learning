@@ -35,7 +35,7 @@ def main():
     
     # Create visualization
     from src.perception.stage3_animation import create_temporal_animation
-    create_temporal_animation(trainer.history)
+    # create_temporal_animation(trainer.history)
     
     print("Stage 3 completed! Check results/plots/temporal_evolution.gif")
 
