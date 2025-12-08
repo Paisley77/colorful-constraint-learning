@@ -13,6 +13,14 @@ A fundamental limitation in current neurosymbolic AI is the *broken interface* b
 
 This project introduces a **geometric-semantic interface** that transforms raw state trajectories into a structured HSV color space where constraint manifolds become visually apparent and temporally rich patterns can be learned efficiently.
 
+### Geometric Patterns of Periodic Constraints
+![Pendulum Trace after Diffeomorphic Mapping to HSV](geometry_theory/visualizations/hsv_cylinder_3d.png)
+This visualization demonstrates how **periodic constraints in dynamical systems naturally manifest as elegant geometric patterns** in structured color spaces.
+This geometric perspective enables:
+- **Topological constraint learning** via persistent homology
+- **Hyperbolic embeddings** for hierarchical constraints
+- **Visual semantic interfaces** for interpretable AI
+
 ### Early Semantic Shaping in the HSV Space
 ![HSV Manifold Visualization](results/plots/training_evolution.gif)
 *Stage 1: Foundation Learning* demonstrates how our contrastive loss shapes the semantic embedding space. Expert trajectories (hsv) and violator trajectories (red in bottom plots) gradually separate into distinct clusters in the learned HSV color manifold, where hue represents semantic category, saturation indicates confidence, and value shows prominence.
